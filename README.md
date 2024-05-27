@@ -1,0 +1,1 @@
+This is a repository for the code used in my masters project. It contains code for transcriptome building and annotation, phylogenetic bioinformatics, and gene identification from the transcriptome and genome. Any questions email me at nieha737@student.otago.ac.nz
