@@ -1,0 +1,33 @@
+## Finding specific genes within Artemia transcriptome
+
+# Put gene you want to find (predicted amino acid sequence) in a file (here, en.fasta)
+# and then search it
+diamond makedb --db en --in en.fasta
+diamond blastx --db en --query /Volumes/scratch/deardenlab/hankniemi/RNA_Bloom_Assembly/rnabloom.transcripts.fa
+
+# Pulls out the sequence of interest (11752 is the "best hit" for this specific gene)
+samtools faidx ../RNA_Bloom_Assembly/rnabloom.transcripts.fa 11752
+
+# Searches for the genes in the fully annotated transcriptome (engrailed is example here)
+grep -i engrailed /Volumes/scratch/deardenlab/hankniemi/artemia_annotated/artemia_output.emapper.annotations
+
+
+## Finding specific genes within the Artemia genome
+
+# Location of genome annotations
+/Volumes/archive/deardenlab/guhlin/Artemia_franciscana/prediction/artemia_franciscana_rnabloom/predict_results
+
+# Location of intermediate genome annotations
+/Volumes/archive/deardenlab/guhlin/Artemia_franciscana/prediction/artemia_franciscana_rnabloom/predict_misc/augustus3.aa
+
+# Blast search against the gene of interest
+diamond blastp --db /Volumes/archive/deardenlab/guhlin/Artemia_franciscana/prediction/artemia_franciscana_rnabloom/predict_results/Artemia_franciscana.proteins --ultra-sensitive --query <gene_sequence>
+# <gene_sequence> is the protein sequence of the gene of interest
+
+# Pull out the mRNA sequence
+samtools faidx /Volumes/archive/deardenlab/guhlin/Artemia_franciscana/prediction/artemia_franciscana_rnabloom/predict_results/Artemia_franciscana.mrna-transcripts.fa FUN_015824-T1
+# "FUN_015824-T1" is the transcript output from the blast search
+
+# Pull out the coding sequence
+samtools faidx /Volumes/archive/deardenlab/guhlin/Artemia_franciscana/prediction/artemia_franciscana_rnabloom/predict_results/Artemia_franciscana.mrna-transcripts.fa FUN_015824-T1
+# "FUN_015824-T1" is the transcript output from the blast search

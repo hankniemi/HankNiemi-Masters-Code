@@ -1,0 +1,76 @@
+## OrthoFinder v2.5.4 compares species' genomics
+# Find the new gene of interest name using drosophila gene query blast
+diamond blastp --db /Volumes/archive/deardenlab/guhlin/artemia_genefinding/transdecoder/rnabloom.transcripts.fa.transdecoder --query /Volumes/scratch/deardenlab/hankniemi/specific_gene_searches/<gene_name>.fasta
+# <gene_name> is the gene of interest
+
+# Get the orthogroup
+grep <best_hit> /Volumes/archive/deardenlab/guhlin/artemia_orthofinder/genomes/OrthoFinder/Results_Feb02/Orthogroups/Orthogroups.tsv | cut -f 1
+# <best_hit> is the output of finding gene name
+
+# Copy the file
+cp /Volumes/archive/deardenlab/guhlin/artemia_orthofinder/genomes/OrthoFinder/Results_Feb02/Orthogroup_Sequences/<orthogroup_name>.fa ./<gene_name>.fa
+# <gene_name> is the gene of interest
+# <orthogroup_name> is the output of get the orthogroup
+
+
+## Finds the top hit for each of the genes for every species
+
+# Blast to Drosophila and get the gene name used in the OrthoFinder run
+diamond blastp --db ../dmel.dmnd --query ./DM_Cad.txt
+# "DM_Cad.txt" is the D. melanogaster protein sequence
+
+# Make database of the gene of interest
+diamond makedb --db DM_Cad --in DM_Cad.fa
+
+# Grep the previous output and get the orthogroup number
+grep "sp|P09085|CAD_DROME" ../genomes/OrthoFinder/Results_Feb02/Orthogroups/Orthogroups.tsv | cut -f 1
+
+# Get the tree
+cat ../genomes/OrthoFinder/Results_Feb02/Gene_Trees/OG0000003_tree.txt
+# "OG0000003" is the orthogroup number
+
+# Get the MSAs
+cat ../genomes/OrthoFinder/Results_Feb02/MultipleSequenceAlignments/OG0000003.fa
+# "OG0000003" is the orthogroup number
+
+# BLASTP to get the Best hits
+# Note we blast the MultipleSequenceAlignment (because it has the species names! The other sequence doesn't)
+diamond blastp --ultra-sensitive --iterate --db ./DM_Cad \
+  --query ../genomes/OrthoFinder/Results_Feb02/MultipleSequenceAlignments/OG0000003.fa | sort -k 12 -n -r | less
+
+
+## MrBayes tree building
+
+# Compile fasta file of all protein sequences from selected species
+# Align using Clustal Omega v1.2.4, Output as nexus .nex filetype
+# Add header below to .nex files
+#NEXUS
+BEGIN DATA;
+dimensions ntax=8 nchar=<length of longest sequence>;
+format interleave datatype=protein missing=X gap=-;
+# <length of longest sequence> is the number of nucleotides in the longest sequence in the .nex file
+
+## MrBayes v3.2.7 building the tree
+
+# Compile alignment file locally
+exe C:\Documents\MrBayes-3.2.7-WIN\<genename_aln.nex>
+# <genename_aln.nex> is the output of the Clustal Omega v1.2.4 alignment
+
+# Create environment
+mamba create -n mrbayes
+conda activate mrbayes
+mamba install -c bioconda mrbayes
+mb
+exe <genename_aln.nex>
+# Mamba v1.5.8 was used as a package manager
+# <genename_aln.nex> is the output of the Clustal Omega v1.2.4 alignment
+
+# Set model to all models
+prset aamodelpr=mixed
+
+# Run
+mcmc
+
+# Create stats and tree files
+sump
+sumt
